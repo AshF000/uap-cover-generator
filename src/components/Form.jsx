@@ -429,7 +429,7 @@ const Form = ({ onPreviewToggle, isDark = true, onThemeToggle }) => {
         <ClearableInput
           name="teacherName"
           label="Teacher Name"
-          placeholder="e.g. Nakiba Nuren Rahman"
+          placeholder="e.g. Ikhtiyar al-Din Muhammad bin Bakhtiyar Khilji "
           value={formData.teacherName}
           onChange={handleChange}
           onClear={handleClear}

@@ -13,8 +13,8 @@
       dateOfAssignment: "",
       dateOfSubmission: "",
       // Teacher info
-      teacherName: "Nakiba Nuren Rahman",
-      teacherDesignation: "Lecturer",
+      teacherName: "",
+      teacherDesignation: "",
       teacherDepartment: "Computer Science & Engineering",
       // Student info
       studentName: "",
