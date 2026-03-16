@@ -10,6 +10,7 @@ export const departments = [
   { full: "Business Administration", short: "BBA" },
   { full: "Law", short: "Law" },
   { full: "English", short: "Eng" },
+  { full: "Department of Basic Sciences & Humanities", short: "BSH" },
 ];
 
 export const semesters = [
