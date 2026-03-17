@@ -22,6 +22,8 @@ export const semesters = [
   "3.2",
   "4.1",
   "4.2",
+  "5.1",
+  "5.2",
 ];
 
 export const sections = [

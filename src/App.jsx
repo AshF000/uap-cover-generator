@@ -32,6 +32,10 @@ export default function App() {
           <Custom />
         </div>
       )}
+
+      <div className="fixed -left-[10000px] top-0 pointer-events-none opacity-0 print:hidden">
+        <Custom exportMode />
+      </div>
     </div>
   );
 }

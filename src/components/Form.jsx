@@ -5,8 +5,8 @@ import { FaMoon } from "react-icons/fa";
 import {
   MdOutlineWbSunny,
   MdOutlineFileDownload,
-  MdPreview,
 } from "react-icons/md";
+import generatePDF, { Resolution, Margin } from "react-to-pdf";
 
 // Theme-aware class helpers
 const getInputClasses = (isDark) =>
@@ -32,6 +32,37 @@ const getClearBtnClasses = (isDark) =>
   isDark
     ? "text-zinc-500 hover:text-zinc-300 transition-colors"
     : "text-gray-400 hover:text-gray-600 transition-colors";
+
+const normalizeCourseCodeForFileName = (courseCode = "") =>
+  courseCode
+    .trim()
+    .toUpperCase()
+    .replace(/\s*-\s*/g, "-")
+    .replace(/\s+/g, "");
+
+const normalizeFilePart = (value = "") =>
+  value
+    .toString()
+    .trim()
+    .replace(/[\\/:*?"<>|]/g, "")
+    .replace(/\s+/g, " ");
+
+const applyLegacyPdfColors = (clonedDoc) => {
+  const root = clonedDoc.documentElement;
+  const legacyColorMap = {
+    "--color-white": "#ffffff",
+    "--color-black": "#000000",
+    "--color-gray-200": "#e5e7eb",
+    "--color-gray-700": "#374151",
+    "--color-zinc-700": "#3f3f46",
+    "--color-zinc-800": "#27272a",
+    "--color-zinc-900": "#18181b",
+  };
+
+  Object.entries(legacyColorMap).forEach(([token, value]) => {
+    root.style.setProperty(token, value);
+  });
+};
 
 // Reusable clearable input component with optional label
 const ClearableInput = ({
@@ -195,6 +226,63 @@ const Form = ({ onPreviewToggle, isDark = true, onThemeToggle }) => {
     }));
   };
 
+  const getVisiblePdfTarget = () => {
+    return document.querySelector('[data-pdf-target="cover-document-export"]');
+  };
+
+  const buildDownloadFileName = () => {
+    const reg = normalizeFilePart(formData.studentReg) || "unknown-reg";
+    const courseCode =
+      normalizeFilePart(normalizeCourseCodeForFileName(formData.courseCode)) ||
+      "unknown-course";
+
+    const coverTypeBase = formData.isCustomCoverType
+      ? formData.customCoverType
+      : formData.documentType;
+
+    const coverType = normalizeFilePart(coverTypeBase).toLowerCase() || "cover";
+    const numberPart = normalizeFilePart(formData.assignmentNo);
+    const coverTypeWithNumber = numberPart
+      ? `${coverType}#${numberPart}`
+      : coverType;
+
+    return `${reg} - ${courseCode} - ${coverTypeWithNumber}.pdf`;
+  };
+
+  const handleDownload = async () => {
+    const target = getVisiblePdfTarget();
+
+    if (!target) {
+      return;
+    }
+
+    try {
+      await generatePDF(() => target, {
+        method: "save",
+        filename: buildDownloadFileName(),
+        resolution: Resolution.HIGH,
+        page: {
+          margin: Margin.NONE,
+          format: "letter",
+          orientation: "portrait",
+        },
+        canvas: {
+          mimeType: "image/jpeg",
+          qualityRatio: 1,
+        },
+        overrides: {
+          canvas: {
+            useCORS: true,
+            backgroundColor: "#ffffff",
+            onclone: applyLegacyPdfColors,
+          },
+        },
+      });
+    } catch (error) {
+      console.error("PDF download failed", error);
+    }
+  };
+
   return (
     <div
       className={`p-6 space-y-5 print:hidden overflow-y-auto h-full ${isDark ? "bg-slate-900" : "bg-slate-50"}`}
@@ -237,7 +325,7 @@ const Form = ({ onPreviewToggle, isDark = true, onThemeToggle }) => {
       <div className="flex justify-around gap-1 md:gap-3 flex-wrap">
         {/* Download Button */}
         <button
-          onClick={() => window.print()}
+          onClick={handleDownload}
           className="flex items-center justify-center 
                w-12 h-12 sm:w-18 md:w-auto md:h-auto
                md:flex-1

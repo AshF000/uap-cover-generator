@@ -9,7 +9,7 @@ import {
 import { useFormContext } from "../context/FormContext";
 import uapLogo from "../assets/UAP-logo.png";
 
-const Custom = () => {
+const Custom = ({ exportMode = false }) => {
   const containerRef = useRef(null);
   const [scale, setScale] = useState(1);
   const { formData } = useFormContext();
@@ -25,16 +25,21 @@ const Custom = () => {
     : formData.documentType === "Lab Report";
 
   useEffect(() => {
+  if (exportMode) {
+    const id = setTimeout(() => setScale(1), 0);  // ⬅️ fix
+    return () => clearTimeout(id);
+  }
+
     const updateScale = () => {
       if (containerRef.current) {
         const containerHeight = containerRef.current.clientHeight;
         const containerWidth = containerRef.current.clientWidth;
-        const a4Height = 11.69 * 96; // A4 height in pixels (96 DPI)
-        const a4Width = 8.27 * 96; // A4 width in pixels
+        const letterHeight = 11 * 96;
+        const letterWidth = 8.5 * 96;
         const padding = 32; // Some padding around the preview
 
-        const scaleHeight = (containerHeight - padding) / a4Height;
-        const scaleWidth = (containerWidth - padding) / a4Width;
+        const scaleHeight = (containerHeight - padding) / letterHeight;
+        const scaleWidth = (containerWidth - padding) / letterWidth;
         setScale(Math.min(scaleHeight, scaleWidth, 1)); // Never scale up beyond 1
       }
     };
@@ -42,15 +47,20 @@ const Custom = () => {
     updateScale();
     window.addEventListener("resize", updateScale);
     return () => window.removeEventListener("resize", updateScale);
-  }, []);
+  }, [exportMode]);
 
   return (
     <div
       ref={containerRef}
-      className="flex items-center justify-center bg-gray-200 h-full w-full print:min-h-0 print:bg-white print:p-0 print:overflow-visible print:h-dvh"
+      className={`flex items-center justify-center w-full ${
+        exportMode
+          ? "bg-white"
+          : "bg-gray-200 h-full print:min-h-0 print:bg-white print:p-0 print:overflow-visible print:h-dvh"
+      }`}
     >
       {/* A4 Document */}
       <div
+        data-pdf-target={exportMode ? "cover-document-export" : "cover-document"}
         className="
           a4-document
           bg-white
@@ -60,8 +70,8 @@ const Custom = () => {
           relative
         "
         style={{
-          width: "8.27in",
-          height: "11.69in", // A4 exact size
+          width: "8.5in",
+          height: "11in",
           fontFamily: "serif",
           transform: `scale(${scale})`,
           transformOrigin: "center center",
@@ -80,7 +90,7 @@ const Custom = () => {
           style={{
             margin: "0.5in",
             padding: "0.5in",
-            height: "calc(11.69in - 1in)",
+            height: "calc(11in - 1in)",
             border: "1px solid black",
           }}
         >
